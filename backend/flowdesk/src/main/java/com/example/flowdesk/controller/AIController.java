@@ -72,7 +72,7 @@ public class AIController {
         RestTemplate restTemplate = new RestTemplate();
 
         Map<String, Object> request = Map.of(
-                "model", "llama3",
+                "model", "phi3:mini",
                 "prompt", context,
                 "stream", false
         );
