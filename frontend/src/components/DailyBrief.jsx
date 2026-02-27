@@ -1,134 +1,113 @@
 import { useEffect, useState } from "react";
 
 export default function DailyBrief() {
+
   const today = new Date().toDateString();
 
   const [brief, setBrief] = useState({
     urgent: [],
     important: [],
-    later: [],
+    later: []
   });
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(false);
 
-  const fetchBrief = async () => {
+  const fetchBrief = () => {
     setLoading(true);
-    setError(null);
+    setError(false);
 
-    try {
-      const res = await fetch("http://localhost:8080/api/ai/daily-brief");
-      const data = await res.json();
-
-      if (!data.ai_raw_output) {
-        throw new Error("Invalid AI response");
-      }
-
-      // Try strict JSON parsing
-      let parsed;
-      try {
-        parsed = JSON.parse(data.ai_raw_output);
-      } catch {
-        // If LLM adds extra text, extract JSON manually
-        const jsonMatch = data.ai_raw_output.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          parsed = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error("Could not parse AI JSON");
-        }
-      }
-
-      setBrief({
-        urgent: parsed.urgent || [],
-        important: parsed.important || [],
-        later: parsed.later || [],
+    fetch("http://localhost:8080/api/ai/daily-brief")
+      .then(res => res.json())
+      .then(data => {
+        setBrief(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Daily brief error:", err);
+        setError(true);
+        setLoading(false);
       });
-
-    } catch (err) {
-      console.error("Daily brief error:", err);
-      setError("AI ranking failed");
-    } finally {
-      setLoading(false);
-    }
   };
 
   useEffect(() => {
     fetchBrief();
   }, []);
 
-  const renderSection = (title, styles, items) => (
+  const Section = ({ title, color, items }) => (
     <div className="mb-6">
-      <h3 className={`font-semibold mb-3 ${styles.title}`}>
+      <h3 className={`font-semibold mb-3 ${color}`}>
         {title}
       </h3>
 
-      <div className="space-y-3">
-        {items.length > 0 ? (
-          items.map((item, index) => (
-            <div
-              key={index}
-              className={`${styles.card} p-3 rounded-lg hover:opacity-90 cursor-pointer transition`}
-            >
-              <p className="text-sm font-medium leading-snug">
-                {item}
-              </p>
-            </div>
-          ))
-        ) : (
-          <p className="text-xs text-gray-500">No items</p>
-        )}
-      </div>
+      {items.length === 0 && (
+        <p className="text-gray-500 text-sm">No items</p>
+      )}
+
+      {items.map((item, index) => (
+        <div
+          key={index}
+          className="p-2 bg-[#0f0f1a] rounded mb-2 text-sm"
+        >
+          {item}
+        </div>
+      ))}
     </div>
   );
 
   return (
-    <div className="w-80 bg-[#1a1a2e] p-6 flex flex-col text-white border-l border-[#2a2a3e]">
+    <div className="w-80 bg-[#1a1a2e] p-6 flex flex-col text-white">
 
-      {/* Header */}
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-xl font-bold">Daily Focus</h2>
-        <button
-          onClick={fetchBrief}
-          className="text-xs text-purple-400 hover:text-purple-300"
-        >
-          Refresh
-        </button>
-      </div>
+      <h2 className="text-xl font-bold mb-1">
+        Daily Focus
+      </h2>
 
-      <p className="text-gray-400 text-sm mb-6">{today}</p>
+      <button
+        onClick={fetchBrief}
+        className="mb-4 bg-purple-600 px-3 py-1 rounded text-sm"
+      >
+        Refresh
+      </button>
+
+      <p className="text-gray-400 text-sm mb-6">
+        {today}
+      </p>
 
       {loading && (
-        <p className="text-gray-400 text-sm animate-pulse">
+        <p className="text-gray-400 text-sm">
           Generating AI brief...
         </p>
       )}
 
       {error && (
-        <p className="text-red-400 text-sm mb-4">
-          {error}
+        <p className="text-red-400 text-sm">
+          Failed to load AI ranking
         </p>
       )}
 
       {!loading && !error && (
         <>
-          {renderSection("🔴 Urgent", {
-            title: "text-red-400",
-            card: "bg-red-500/10 border border-red-500/30"
-          }, brief.urgent)}
+          <Section
+            title="🔴 Urgent"
+            color="text-red-400"
+            items={brief.urgent}
+          />
 
-          {renderSection("🟡 Important", {
-            title: "text-yellow-400",
-            card: "bg-yellow-500/10 border border-yellow-500/30"
-          }, brief.important)}
+          <Section
+            title="🟡 Important"
+            color="text-yellow-400"
+            items={brief.important}
+          />
 
-          {renderSection("🟢 Later", {
-            title: "text-green-400",
-            card: "bg-green-500/10 border border-green-500/30"
-          }, brief.later)}
+          <Section
+            title="🟢 Later"
+            color="text-green-400"
+            items={brief.later}
+          />
         </>
       )}
 
-      <div className="mt-auto pt-4 border-t border-gray-700 text-xs text-gray-400">
+      <div className="mt-auto pt-4 border-t border-gray-700 text-sm text-gray-400">
         LLM-powered intelligent ranking
       </div>
 

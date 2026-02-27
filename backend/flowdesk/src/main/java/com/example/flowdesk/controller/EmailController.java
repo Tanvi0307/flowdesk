@@ -1,35 +1,50 @@
 package com.example.flowdesk.controller;
 
+import com.example.flowdesk.model.Email;
+import com.example.flowdesk.service.EmailClassifierService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/emails")
 @CrossOrigin(origins = "http://localhost:5173")
 public class EmailController {
 
+    @Autowired
+    private EmailClassifierService classifierService;
+
     @GetMapping
-    public List<Map<String, Object>> getEmails() {
-        return List.of(
-                Map.of(
-                        "id", 1,
-                        "from", "Prof. Sharma",
-                        "subject", "Urgent: Project Deadline",
-                        "preview", "Please submit the final draft by tonight.",
-                        "body", "Reminder: Submit project before 11:59 PM.",
-                        "time", "9:10 AM",
-                        "urgent", true
+    public List<Email> getEmails() {
+
+        List<Email> emails = List.of(
+                new Email(
+                        1L,
+                        "Prof. Sharma",
+                        "Urgent: Project Deadline",
+                        "Reminder: Submit project before 11:59 PM today.",
+                        "9:10 AM"
                 ),
-                Map.of(
-                        "id", 2,
-                        "from", "Placement Cell",
-                        "subject", "Interview Shortlist",
-                        "preview", "You have been shortlisted...",
-                        "body", "Congratulations! You are shortlisted.",
-                        "time", "8:40 AM",
-                        "urgent", true
+                new Email(
+                        2L,
+                        "Placement Cell",
+                        "Interview Shortlist",
+                        "Interview scheduled at 2 PM today.",
+                        "8:40 AM"
                 )
         );
+
+        // 🔥 Hybrid Classification
+        for (Email email : emails) {
+            String priority = classifierService.classifyEmail(
+                    email.getFrom(),
+                    email.getSubject(),
+                    email.getBody()
+            );
+            email.setPriority(priority);
+        }
+
+        return emails;
     }
 }

@@ -4,7 +4,7 @@ export default function SlackPage() {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/messages")
+    fetch("http://localhost:8080/api/slack")
       .then(res => res.json())
       .then(data => setMessages(data))
       .catch(err => console.error("Error fetching messages:", err));

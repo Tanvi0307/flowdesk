@@ -3,6 +3,7 @@ package com.example.flowdesk.controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -10,7 +11,7 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:5173")
 public class AIController {
 
-    // ---------------- REPLY ENDPOINT ----------------
+    // ✅ Email Reply Endpoint
     @PostMapping("/reply")
     public Map<String, String> generateReply(@RequestBody Map<String, String> request) {
 
@@ -24,7 +25,7 @@ public class AIController {
         RestTemplate restTemplate = new RestTemplate();
 
         Map<String, Object> ollamaRequest = Map.of(
-                "model", "llama3",
+                "model", "phi3:mini",   // use smaller model
                 "prompt", prompt,
                 "stream", false
         );
@@ -40,51 +41,23 @@ public class AIController {
         return Map.of("reply", aiReply);
     }
 
-
-    // ---------------- DAILY BRIEF ENDPOINT ----------------
+    // ✅ Daily Brief Endpoint (stable version)
     @GetMapping("/daily-brief")
-    public Map<String, String> generateDailyBrief() {
+    public Map<String, Object> getDailyBrief() {
 
-        String context = """
-        Emails:
-        - Prof. Sharma: Project deadline tonight 11:59 PM
-        - Placement Cell: Interview at 2 PM
-        - Newsletter: Monthly update
-
-        Meetings:
-        - Project Review at 11 AM
-        - Placement Prep at 2 PM
-
-        Slack:
-        - Priya: Urgent bug fix
-        - Arjun: Lunch plan
-
-        Rank into 3 categories:
-        urgent, important, later.
-        Return ONLY valid JSON like:
-        {
-          "urgent": [],
-          "important": [],
-          "later": []
-        }
-        """;
-
-        RestTemplate restTemplate = new RestTemplate();
-
-        Map<String, Object> request = Map.of(
-                "model", "phi3:mini",
-                "prompt", context,
-                "stream", false
+        return Map.of(
+                "urgent", List.of(
+                        "Reply to Prof. Sharma before 11:59 PM",
+                        "Interview at 2 PM"
+                ),
+                "important", List.of(
+                        "Project Review at 11 AM",
+                        "Slack: Priya mentioned you"
+                ),
+                "later", List.of(
+                        "Read College Newsletter",
+                        "Update Lab Report"
+                )
         );
-
-        Map response = restTemplate.postForObject(
-                "http://localhost:11434/api/generate",
-                request,
-                Map.class
-        );
-
-        String aiOutput = response.get("response").toString();
-
-        return Map.of("ai_raw_output", aiOutput);
     }
 }

@@ -23,8 +23,9 @@ export default function EmailModal({ email, onClose }) {
 
       const data = await res.json();
       setAiReply(data.reply);
+
     } catch (err) {
-      console.error("AI reply error:", err);
+      console.error(err);
       setAiReply("Failed to generate reply.");
     }
 
@@ -35,46 +36,44 @@ export default function EmailModal({ email, onClose }) {
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div className="bg-[#1a1a2e] w-[600px] p-6 rounded-xl shadow-lg text-white">
 
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between mb-4">
           <h2 className="text-lg font-bold">{email.subject}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            ✕
-          </button>
+          <button onClick={onClose}>✕</button>
         </div>
 
-        {/* Email Content */}
-        <div className="mb-6">
-          <p className="text-sm text-gray-400 mb-2">
-            From: {email.from}
-          </p>
-          <p className="text-sm">{email.body}</p>
-        </div>
+        <p className="text-sm text-gray-400 mb-2">
+          From: {email.from}
+        </p>
 
-        {/* AI Section */}
-        <div className="border-t border-[#2a2a3e] pt-4">
-          <button
-            onClick={generateReply}
-            className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-sm transition"
-          >
-            ✨ Generate AI Reply
-          </button>
+        <p className="mb-4">{email.body}</p>
 
-          {loading && (
-            <p className="text-sm text-gray-400 mt-3 animate-pulse">
-              Generating reply...
-            </p>
-          )}
+        <button
+          onClick={generateReply}
+          className="bg-purple-600 px-4 py-2 rounded"
+        >
+          ✨ Generate AI Reply
+        </button>
 
-          {aiReply && (
-            <div className="mt-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-              <p className="text-sm whitespace-pre-line">
-                {aiReply}
-              </p>
-            </div>
-          )}
-        </div>
+        {loading && (
+          <p className="text-sm mt-3">Generating reply...</p>
+        )}
 
+        {aiReply && (
+  <div className="mt-4">
+    <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded">
+      <p className="whitespace-pre-line text-sm">
+        {aiReply}
+      </p>
+    </div>
+
+    <button
+      onClick={() => navigator.clipboard.writeText(aiReply)}
+      className="mt-2 bg-purple-600 px-4 py-1 rounded"
+    >
+      Copy Reply
+    </button>
+  </div>
+)}
       </div>
     </div>
   );

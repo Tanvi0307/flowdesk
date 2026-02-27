@@ -1,28 +1,48 @@
 import { useEffect, useState } from "react";
 
 export default function CalendarPage() {
+
   const [meetings, setMeetings] = useState([]);
+  const [emails, setEmails] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/meetings")
+    fetch("http://localhost:8080/api/calendar")
       .then(res => res.json())
-      .then(data => setMeetings(data))
-      .catch(err => console.error("Error fetching meetings:", err));
+      .then(data => setMeetings(data));
+
+    fetch("http://localhost:8080/api/emails")
+      .then(res => res.json())
+      .then(data => setEmails(data));
   }, []);
 
-  return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Today's Schedule</h2>
+  const urgentEmails = emails.filter(e => e.priority === "urgent");
+  const importantEmails = emails.filter(e => e.priority === "important");
 
-      {meetings.map(meeting => (
-        <div key={meeting.id} className="mb-4 p-4 bg-gray-800 rounded-lg">
-          <h3 className="font-semibold">{meeting.title}</h3>
-          <p className="text-sm text-gray-400">
-            {meeting.time} • {meeting.duration}
-          </p>
-          <div className="mt-2 text-xs text-gray-500">
-            Attendees: {meeting.attendees.join(", ")}
-          </div>
+  return (
+    <div className="text-white">
+
+      <h2 className="text-xl font-semibold mb-6">
+        Calendar
+      </h2>
+
+      <h3 className="mb-3">📅 Meetings</h3>
+      {meetings.map((m, i) => (
+        <div key={i} className="mb-2">
+          {m.time} - {m.title}
+        </div>
+      ))}
+
+      <h3 className="mt-6 mb-3 text-red-400">🔴 Today Reminders</h3>
+      {urgentEmails.map(e => (
+        <div key={e.id} className="mb-2">
+          {e.subject}
+        </div>
+      ))}
+
+      <h3 className="mt-6 mb-3 text-yellow-400">🟡 Tomorrow</h3>
+      {importantEmails.map(e => (
+        <div key={e.id} className="mb-2">
+          {e.subject}
         </div>
       ))}
     </div>
