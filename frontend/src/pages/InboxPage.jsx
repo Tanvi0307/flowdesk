@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import EmailModal from "../components/EmailModal";
+import { MOCK_ITEMS } from "../data/mockData";
 
 export default function InboxPage() {
 
