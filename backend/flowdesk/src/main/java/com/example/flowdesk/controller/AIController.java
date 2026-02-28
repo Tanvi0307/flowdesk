@@ -3,6 +3,8 @@ package com.example.flowdesk.controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.time.LocalDateTime;
 import java.time.Duration;
 import java.util.*;
@@ -372,97 +374,54 @@ Document:
     // SLACK CLASSIFICATION
     // ============================
     @PostMapping("/classify-slack")
-    public List<Map<String, Object>> classifySlack(
-            @RequestBody Map<String, List<Map<String, Object>>> body) {
+public List<Map<String, Object>> classifySlack(
+        @RequestBody Map<String, List<Map<String, Object>>> body) {
 
-        List<Map<String, Object>> items = body.get("items");
-        List<Map<String, Object>> results = new ArrayList<>();
+    List<Map<String, Object>> items = body.get("items");
+    List<Map<String, Object>> results = new ArrayList<>();
 
-        for (Map<String, Object> item : items) {
+    for (Map<String, Object> item : items) {
 
-            try {
+        String id = item.get("id").toString();
+        String message = item.get("message").toString().toLowerCase();
 
-                String id = item.get("id").toString();
-                String message = item.get("message").toString();
+        String tag = "informational";
 
-                String prompt = """
-You are an AI Slack productivity assistant.
+        if (message.contains("urgent") ||
+            message.contains("deadline") ||
+            message.contains("immediately") ||
+            message.contains("no extension")) {
 
-For the given Slack message:
+            tag = "urgent";
 
-1. Classify into one tag:
-   urgent
-   action
-   meeting-change
-   important
-   informational
+        } else if (message.contains("shift") ||
+                   message.contains("reschedule") ||
+                   message.contains("meeting")) {
 
-2. Generate a short actionable summary.
+            tag = "meeting-change";
 
-Respond STRICTLY in this JSON format:
-{
-  "tag": "...",
-  "action": "..."
-}
+        } else if (message.contains("upload") ||
+                   message.contains("register") ||
+                   message.contains("submit")) {
 
-Message:
-""" + message;
+            tag = "action";
 
-                Map<String, Object> request = new HashMap<>();
-                request.put("model", "phi3:mini");
-                request.put("prompt", prompt);
-                request.put("stream", false);
+        } else if (message.contains("review") ||
+                   message.contains("important")) {
 
-                Map<String, Object> options = new HashMap<>();
-                options.put("temperature", 0.0);
-                options.put("num_predict", 120);
-                options.put("num_ctx", 512);
-
-                request.put("options", options);
-
-                Map response = restTemplate.postForObject(
-                        "http://127.0.0.1:11434/api/generate",
-                        request,
-                        Map.class
-                );
-
-                String raw = response.get("response").toString().toLowerCase();
-
-                String tag = "informational";
-                String action = "No action required";
-
-                if (raw.contains("urgent"))
-                    tag = "urgent";
-                else if (raw.contains("meeting-change"))
-                    tag = "meeting-change";
-                else if (raw.contains("action"))
-                    tag = "action";
-                else if (raw.contains("important"))
-                    tag = "important";
-
-                int actionIndex = raw.indexOf("action");
-                if (actionIndex != -1) {
-                    action = raw.substring(actionIndex)
-                            .replace("\"", "")
-                            .replace("}", "")
-                            .trim();
-                }
-
-                Map<String, Object> result = new HashMap<>();
-                result.put("id", id);
-                result.put("aiTag", tag);
-                result.put("aiAction", action);
-                result.put("confidence", 95);
-
-                results.add(result);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            tag = "important";
         }
 
-        return results;
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", id);
+        result.put("aiTag", tag);
+        result.put("confidence", 95);
+
+        results.add(result);
     }
+
+    return results;
+}
 
     // ============================
     // DAILY BRIEF
@@ -515,4 +474,45 @@ Message:
 
         return result;
     }
+    @PostMapping("/slack-reply")
+public Map<String, String> generateSlackReply(
+        @RequestBody Map<String, String> body) {
+
+    try {
+
+        String message = body.get("message");
+
+        if (message == null || message.isEmpty()) {
+            return Map.of("reply", "No message provided.");
+        }
+
+        String prompt = """
+Write a short professional Slack reply in one sentence.
+Message:
+""" + message;
+
+        Map<String, Object> request = new HashMap<>();
+        request.put("model", "phi3:mini");
+        request.put("prompt", prompt);
+        request.put("stream", false);
+
+        Map response = restTemplate.postForObject(
+                "http://127.0.0.1:11434/api/generate",
+                request,
+                Map.class
+        );
+
+        if (response == null || response.get("response") == null) {
+            return Map.of("reply", "AI service not responding.");
+        }
+
+        String reply = response.get("response").toString().trim();
+
+        return Map.of("reply", reply);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return Map.of("reply", "Slack reply generation failed.");
+    }
+}
 }

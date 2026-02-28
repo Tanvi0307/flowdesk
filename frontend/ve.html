@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Flowdesk — Daily Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+:root {
+  --bg: #f7f4f9;
+  --surface: #ffffff;
+  --surface2: #f2eef7;
+  --border: #e8e2f0;
+  --border2: #d4cbea;
+  --text: #1e1628;
+  --text2: #6b5f82;
+  --text3: #a899be;
+  --urgent: #b5426a;
+  --urgent-bg: #fdf0f5;
+  --urgent-border: #f0c0d4;
+  --important: #a0622a;
+  --important-bg: #fdf6ef;
+  --important-border: #f0d8b8;
+  --later: #3a7a6a;
+  --later-bg: #eef7f4;
+  --later-border: #b0dcd2;
+  --accent: #7c5cbf;
+  --accent-light: #f0eafa;
+  --accent-border: #d0bef5;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body,#root{height:100%;}
+body{font-family:'Geist',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* ── LOGIN ── */
+.login-wrap{height:100vh;display:flex;align-items:stretch;}
+.login-left{
+  width:440px;background:#1e1428;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:48px 44px;position:relative;overflow:hidden;
+}
+.login-left::before{
+  content:'';position:absolute;top:-100px;right:-100px;
+  width:320px;height:320px;border-radius:50%;
+  background:radial-gradient(circle,rgba(124,92,191,0.28) 0%,transparent 70%);
+}
+.login-left::after{
+  content:'';position:absolute;bottom:-80px;left:-60px;
+  width:240px;height:240px;border-radius:50%;
+  background:radial-gradient(circle,rgba(181,66,106,0.22) 0%,transparent 70%);
+}
+.login-right{flex:1;display:flex;align-items:center;justify-content:center;padding:48px;background:var(--surface);}
+.login-form-box{width:100%;max-width:380px;}
+.wordmark{font-family:'Instrument Serif',serif;font-size:21px;color:#fff;letter-spacing:-0.2px;}
+.wordmark span{color:rgba(255,255,255,0.28);}
+.login-tagline{font-family:'Instrument Serif',serif;font-size:36px;color:#fff;line-height:1.22;font-weight:400;}
+.login-tagline em{color:rgba(255,255,255,0.32);font-style:italic;}
+.feat{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;}
+.feat-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);}
+.feat-text strong{font-size:13px;font-weight:500;color:rgba(255,255,255,0.82);display:block;margin-bottom:2px;}
+.feat-text p{font-size:12px;color:rgba(255,255,255,0.42);line-height:1.45;}
+.form-label{font-size:11.5px;font-weight:500;color:var(--text2);letter-spacing:0.3px;display:block;margin-bottom:6px;}
+.form-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Geist',sans-serif;font-size:14px;color:var(--text);background:var(--surface);outline:none;transition:border-color .2s,box-shadow .2s;}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,92,191,0.12);}
+.form-input::placeholder{color:var(--text3);}
+.login-btn{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-family:'Geist',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;letter-spacing:0.2px;}
+.login-btn:hover{background:#6748a8;transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,0.16);}
+.login-btn:disabled{opacity:0.7;cursor:not-allowed;transform:none;}
+.divider-row{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--text3);font-size:12px;}
+.divider-row::before,.divider-row::after{content:'';flex:1;height:1px;background:var(--border);}
+.oauth-btn{width:100%;padding:11px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface);font-family:'Geist',sans-serif;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:9px;}
+.oauth-btn:hover{border-color:var(--border2);background:var(--surface2);}
+.err-box{background:var(--urgent-bg);border:1px solid var(--urgent-border);border-radius:8px;padding:10px 14px;font-size:12.5px;color:var(--urgent);margin-bottom:16px;}
+
+/* ── DASHBOARD SHELL ── */
+.dash{display:flex;height:100vh;overflow:hidden;}
+.topbar{height:54px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:14px;flex-shrink:0;}
+
+/* LEFT */
+.left-col{width:368px;min-width:368px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;max-height:100vh;}
+.left-body{padding:26px 24px;flex:1;}
+
+/* RIGHT */
+.right-col{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
+.right-scroll{flex:1;overflow-y:auto;padding:26px 28px;}
+
+/* TABS */
+.tab-row{display:flex;gap:0;padding:14px 20px 0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab-btn{display:flex;align-items:center;gap:7px;padding:9px 15px 12px;border:none;background:none;cursor:pointer;font-family:'Geist',sans-serif;font-size:13px;font-weight:500;color:var(--text3);border-bottom:2px solid transparent;transition:all .18s;margin-bottom:-1px;white-space:nowrap;border-radius:6px 6px 0 0;}
+.tab-btn:hover{color:var(--text2);background:var(--surface2);}
+.tab-btn.on{color:var(--text);border-bottom-color:var(--accent);}
+.bdg{border-radius:20px;font-size:10px;font-weight:600;padding:1.5px 6px;min-width:18px;text-align:center;}
+.bdg-red{background:var(--urgent-bg);color:var(--urgent);border:1px solid var(--urgent-border);}
+.bdg-blue{background:var(--accent-light);color:var(--accent);border:1px solid var(--accent-border);}
+.bdg-gray{background:var(--surface2);color:var(--text2);}
+
+/* CHIPS */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;letter-spacing:0.4px;text-transform:uppercase;flex-shrink:0;}
+.chip-u{background:var(--urgent-bg);color:var(--urgent);border:1px solid var(--urgent-border);}
+.chip-i{background:var(--important-bg);color:var(--important);border:1px solid var(--important-border);}
+.chip-l{background:var(--later-bg);color:var(--later);border:1px solid var(--later-border);}
+
+/* MAIL */
+.mail-sec-hdr{display:flex;align-items:center;gap:10px;margin:18px 0 10px;}
+.mail-sec-line{flex:1;height:1px;background:var(--border);}
+.mail-card{background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:15px 17px;margin-bottom:7px;cursor:pointer;transition:all .18s;}
+.mail-card:hover{border-color:var(--border2);box-shadow:0 2px 12px rgba(0,0,0,0.06);transform:translateY(-1px);}
+.mail-card-u{background:var(--urgent-bg);border-color:var(--urgent-border);}
+.mail-card-i{background:var(--important-bg);border-color:var(--important-border);}
+.unread-l{border-left:3px solid var(--accent);}
+.unread-u{border-left:3px solid var(--urgent);}
+
+/* SLACK */
+.slack-row{display:flex;gap:12px;align-items:flex-start;padding:13px 14px;border-radius:10px;cursor:pointer;transition:background .15s;margin-bottom:2px;}
+.slack-row:hover{background:var(--surface2);}
+
+/* CAL */
+.cal-row{display:flex;align-items:stretch;gap:14px;padding:16px 0;border-bottom:1px solid var(--border);}
+.cal-row:last-child{border-bottom:none;}
+
+/* TASKS */
+.task-row{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:padding-left .15s;}
+.task-row:last-child{border-bottom:none;}
+.task-row:hover{padding-left:5px;}
+.chk{width:19px;height:19px;border-radius:5px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:all .2s;font-size:10px;}
+.chk.dn{border-color:var(--later);background:var(--later);}
+
+/* BRIEF */
+.brief-card{background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:15px 17px;margin-bottom:8px;opacity:0;transform:translateY(10px);transition:opacity .42s ease,transform .42s ease,box-shadow .2s;}
+.brief-card.vis{opacity:1;transform:translateY(0);}
+.brief-card:hover{box-shadow:0 3px 14px rgba(0,0,0,0.06);}
+
+.sec-lbl{font-size:10px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin-bottom:14px;}
+.hr{height:1px;background:var(--border);margin:20px 0;}
+.avatar{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;letter-spacing:0.3px;}
+
+/* TOPBAR USER */
+.u-avatar{width:32px;height:32px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:'Geist',sans-serif;transition:opacity .2s;}
+.u-avatar:hover{opacity:0.78;}
+.dropdown{position:absolute;top:40px;right:0;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:8px;min-width:210px;box-shadow:0 8px 30px rgba(0,0,0,0.1);z-index:200;animation:fadeup .15s ease forwards;}
+.dd-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;color:var(--text2);cursor:pointer;transition:background .15s;border:none;background:none;width:100%;font-family:'Geist',sans-serif;text-align:left;}
+.dd-item:hover{background:var(--surface2);color:var(--text);}
+.dd-item.danger{color:var(--urgent);}
+.dd-item.danger:hover{background:var(--urgent-bg);}
+.dd-div{height:1px;background:var(--border);margin:4px 0;}
+
+/* SEARCH */
+.search{flex:1;max-width:340px;display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;font-size:13px;color:var(--text3);cursor:text;transition:border-color .2s;}
+.search:hover{border-color:var(--border2);}
+
+/* PROGRESS */
+.prog-track{height:5px;background:var(--surface2);border-radius:5px;overflow:hidden;margin-top:9px;}
+
+@keyframes fadeup{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.panel-in{animation:fadeup .3s ease forwards;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+.pulse{animation:pulse 2.5s ease-in-out infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .75s linear infinite;display:inline-block;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const USERS = [
+  { email:"alex@flowdesk.io", password:"demo123", name:"Alex Morgan", role:"Head of Product", initials:"AM" },
+  { email:"sarah@flowdesk.io", password:"demo123", name:"Sarah Chen", role:"Engineering Manager", initials:"SC" },
+];
+
+const EMAILS = {
+  urgent:[
+    { id:1, from:"David Yuen", email:"d.yuen@acmecorp.com", subject:"URGENT: Contract amendment — sign-off required by 5 PM today", preview:"The legal team has flagged three clauses that must be approved before the 6 PM filing deadline. Please review section 4B immediately.", time:"9:14 AM", avatar:"DY", col:"#c0392b", unread:true },
+    { id:2, from:"IT Security", email:"security@flowdesk.io", subject:"Action required: Unrecognized login detected on your account", preview:"We detected a sign-in attempt from an unrecognized device in Singapore (IP: 103.82.xx.xx). Please verify or revoke this session.", time:"7:02 AM", avatar:"IT", col:"#c0392b", unread:true },
+  ],
+  important:[
+    { id:3, from:"Sarah Chen", email:"s.chen@flowdesk.io", subject:"Q3 Board Report — your review and sign-off requested", preview:"The Q3 financial summary is ready. A few figures on slides 12–16 need your approval before the Thursday board meeting.", time:"8:41 AM", avatar:"SC", col:"#b96b12", unread:true },
+    { id:4, from:"Design Team", email:"design@flowdesk.io", subject:"Figma handoff complete — ready for engineering review", preview:"All components are documented in the shared library. Please check spacing tokens on page 3 before dev sprint begins Monday.", time:"7:55 AM", avatar:"DT", col:"#b96b12", unread:false },
+    { id:5, from:"Priya Nair", email:"p.nair@flowdesk.io", subject:"v2.4 feature specs — cross-team alignment needed before sprint", preview:"Attached are the full specs for the v2.4 launch. Engineering and design leads must sign off before sprint planning this week.", time:"Yesterday", avatar:"PN", col:"#b96b12", unread:false },
+  ],
+  later:[
+    { id:6, from:"James Okafor", email:"j.okafor@flowdesk.io", subject:"Re: Budget allocation — follow-up notes from Tuesday", preview:"Thanks for the context from Tuesday's meeting. I'll circle back once finance confirms the revised Q4 figures.", time:"Yesterday", avatar:"JO", col:"#287a56", unread:false },
+    { id:7, from:"System Alerts", email:"noreply@flowdesk.io", subject:"Weekly infrastructure digest — Feb 27, 2026", preview:"All systems nominal. Uptime: 99.98%. No critical incidents this week. Storage utilization at 61% capacity.", time:"Mon", avatar:"SA", col:"#287a56", unread:false },
+    { id:8, from:"ProductBoard", email:"digest@productboard.com", subject:"Weekly product digest — top reads", preview:"This week: how Figma rethought onboarding, Notion's new AI features, and the case for async product reviews.", time:"Mon", avatar:"PB", col:"#6b8ec4", unread:false },
+  ],
+};
+
+const SLACK = [
+  { id:1, channel:"#engineering", msg:"Prod deploy confirmed — all health checks passing ✅", time:"9:02 AM", unread:4, emoji:"⚙️", priority:"urgent" },
+  { id:2, channel:"#design", msg:"Brand refresh assets are live in the shared drive", time:"8:30 AM", unread:12, emoji:"🎨", priority:"important" },
+  { id:3, channel:"#general", msg:"Reminder: All-hands at 4:00 PM in the Loft — attendance required", time:"8:10 AM", unread:2, emoji:"🏛️", priority:"important" },
+  { id:4, channel:"#product", msg:"Q4 roadmap updated in Notion — please review priorities", time:"Yesterday", unread:0, emoji:"🗺️", priority:"later" },
+  { id:5, channel:"#random", msg:"Friday team lunch — drop a 🙋 if you're joining", time:"Yesterday", unread:0, emoji:"🎲", priority:"later" },
+];
+
+const CALENDAR = [
+  { id:1, title:"Daily Standup", time:"10:00 AM", duration:"15 min", tag:"Team", color:"#7c5cbf", pax:8 },
+  { id:2, title:"Design Review — v2.4", time:"11:30 AM", duration:"60 min", tag:"Product", color:"#b96b12", pax:5 },
+  { id:3, title:"1:1 — Sarah Chen", time:"2:00 PM", duration:"30 min", tag:"1:1", color:"#9b6bbf", pax:2 },
+  { id:4, title:"Investor Update Call", time:"4:00 PM", duration:"60 min", tag:"External", color:"#c0392b", pax:4 },
+];
+
+const INIT_TASKS = [
+  { id:1, title:"Review & sign off on contract amendment (David Yuen)", done:false, priority:"urgent", due:"Today, 5 PM" },
+  { id:2, title:"Resolve security alert — review active sessions", done:false, priority:"urgent", due:"Today" },
+  { id:3, title:"Approve Q3 board report — slides 12–16", done:false, priority:"important", due:"Today" },
+  { id:4, title:"Review PR #247 — authentication refactor", done:false, priority:"important", due:"Today" },
+  { id:5, title:"Update team OKRs for Q4 in Notion", done:true, priority:"important", due:"Completed" },
+  { id:6, title:"Sprint 12 retrospective document", done:false, priority:"later", due:"This week" },
+  { id:7, title:"Schedule Q4 offsite planning session", done:false, priority:"later", due:"Next week" },
+];
+
+const BRIEF = [
+  { icon:"🔴", label:"Urgent", value:"2 actions required", detail:"Contract amendment due 5 PM · Security alert on your account", priority:"urgent" },
+  { icon:"🟡", label:"Important", value:"3 items need attention", detail:"Q3 board report · Figma handoff review · Feature spec sign-off", priority:"important" },
+  { icon:"🟢", label:"Later", value:"3 items, no deadline", detail:"Budget follow-up · Infrastructure digest · Newsletter", priority:"later" },
+  { icon:"📅", label:"Meetings today", value:"4 on calendar", detail:"Standup 10 AM · Investor call 4 PM (don't miss)", priority:"neutral" },
+  { icon:"💬", label:"Slack", value:"18 unread", detail:"#engineering prod deploy (urgent) · #design brand assets", priority:"neutral" },
+];
+
+function getGreeting(){const h=new Date().getHours();return h<12?"Good morning":h<17?"Good afternoon":"Good evening";}
+function getDate(){return new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});}
+
+function Chip({p}){
+  const map={urgent:["chip chip-u","Urgent"],important:["chip chip-i","Important"],later:["chip chip-l","Later"]};
+  const [cls,lbl]=map[p]||["chip chip-l","Later"];
+  return <span className={cls}><span style={{width:5,height:5,borderRadius:"50%",background:"currentColor",display:"inline-block"}}/>{lbl}</span>;
+}
+
+function Avt({initials,color,size=36}){
+  return <div className="avatar" style={{width:size,height:size,background:color+"18",color,fontSize:size*0.33}}>{initials}</div>;
+}
+
+function LoginPage({onLogin}){
+  const [em,setEm]=useState("");const [pw,setPw]=useState("");
+  const [err,setErr]=useState("");const [loading,setLoading]=useState(false);
+  const go=()=>{
+    if(!em||!pw){setErr("Please enter your email and password.");return;}
+    setLoading(true);setErr("");
+    setTimeout(()=>{
+      const u=USERS.find(u=>u.email===em&&u.password===pw);
+      if(u){onLogin(u);}else{setErr("Invalid credentials. Try: alex@flowdesk.io / demo123");setLoading(false);}
+    },900);
+  };
+  return(
+    <div className="login-wrap">
+      <div className="login-left">
+        <div><div className="wordmark">Flowdesk<span> · Command Center</span></div></div>
+        <div>
+          <div className="login-tagline">Your day,<br/><em>intelligently</em><br/>organized.</div>
+          <div style={{marginTop:28,fontSize:12,color:"rgba(255,255,255,0.28)",letterSpacing:"0.3px"}}>Triaged across Urgent · Important · Later</div>
+        </div>
+        <div>
+          {[
+            {icon:"🔴",title:"Urgent items always surface first",desc:"Deadlines and critical alerts are never buried by noise."},
+            {icon:"📊",title:"One unified daily brief",desc:"Email, Slack, calendar, and tasks — intelligently consolidated."},
+            {icon:"⚡",title:"Priority-aware inbox",desc:"Every message is triaged before you see it."},
+          ].map((f,i)=>(
+            <div key={i} className="feat">
+              <div className="feat-icon">{f.icon}</div>
+              <div className="feat-text"><strong>{f.title}</strong><p>{f.desc}</p></div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="login-right">
+        <div className="login-form-box">
+          <div style={{marginBottom:30}}>
+            <h2 style={{fontFamily:"'Instrument Serif',serif",fontSize:28,fontWeight:400,marginBottom:6}}>Sign in to Flowdesk</h2>
+            <p style={{fontSize:13.5,color:"var(--text2)"}}>Access your personalized command center.</p>
+          </div>
+          <button className="oauth-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Continue with Google
+          </button>
+          <button className="oauth-btn">
+            <svg width="15" height="15" viewBox="0 0 88 88" fill="var(--text2)"><rect width="40" height="40"/><rect x="48" width="40" height="40"/><rect y="48" width="40" height="40"/><rect x="48" y="48" width="40" height="40"/></svg>
+            Continue with Microsoft SSO
+          </button>
+          <div className="divider-row">or sign in with email</div>
+          {err&&<div className="err-box">{err}</div>}
+          <div style={{marginBottom:14}}>
+            <label className="form-label">Work email</label>
+            <input className="form-input" type="email" placeholder="you@company.com" value={em} onChange={e=>setEm(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()}/>
+          </div>
+          <div style={{marginBottom:20}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+              <label className="form-label" style={{margin:0}}>Password</label>
+              <span style={{fontSize:12,color:"var(--accent)",cursor:"pointer"}}>Forgot password?</span>
+            </div>
+            <input className="form-input" type="password" placeholder="••••••••" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()}/>
+          </div>
+          <button className="login-btn" onClick={go} disabled={loading}>
+            {loading?<span><span className="spin">↻</span> Signing in…</span>:"Sign in"}
+          </button>
+          <div style={{marginTop:18,textAlign:"center",fontSize:12,color:"var(--text3)"}}>
+            Demo: <b style={{color:"var(--text2)"}}>alex@flowdesk.io</b> / <b style={{color:"var(--text2)"}}>demo123</b>
+          </div>
+          <div style={{marginTop:26,padding:"14px 16px",background:"var(--surface2)",borderRadius:10,border:"1px solid var(--border)"}}>
+            <div style={{fontSize:10.5,fontWeight:600,color:"var(--text3)",letterSpacing:"1.4px",textTransform:"uppercase",marginBottom:5}}>Enterprise</div>
+            <p style={{fontSize:12,color:"var(--text2)",lineHeight:1.55}}>SSO, audit logs, custom data retention, and SAML 2.0 available on the Enterprise plan.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Clock(){
+  const [t,setT]=useState(new Date());
+  useEffect(()=>{const id=setInterval(()=>setT(new Date()),1000);return()=>clearInterval(id);},[]);
+  return <span style={{fontSize:13,color:"var(--text3)",fontVariantNumeric:"tabular-nums"}}>{t.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}</span>;
+}
+
+function BriefPanel({user}){
+  const [rev,setRev]=useState(0);
+  useEffect(()=>{let i=0;const id=setInterval(()=>{i++;setRev(i);if(i>=BRIEF.length)clearInterval(id);},300);return()=>clearInterval(id);},[]);
+  const bgMap={urgent:"var(--urgent-bg)",important:"var(--important-bg)",later:"var(--later-bg)",neutral:"var(--surface)"};
+  const bdMap={urgent:"var(--urgent-border)",important:"var(--important-border)",later:"var(--later-border)",neutral:"var(--border)"};
+  return(
+    <div className="left-col">
+      <div className="left-body">
+        <div style={{marginBottom:26}}>
+          <div style={{fontSize:10.5,fontWeight:600,color:"var(--text3)",letterSpacing:"1.8px",textTransform:"uppercase",marginBottom:10}}>{getDate()}</div>
+          <div style={{fontFamily:"'Instrument Serif',serif",fontSize:30,fontWeight:400,lineHeight:1.2,marginBottom:5}}>
+            {getGreeting()},<br/><span style={{color:"var(--accent)"}}>{user.name.split(" ")[0]}.</span>
+          </div>
+          <div style={{fontSize:12,color:"var(--text3)"}}>{user.role}</div>
+        </div>
+
+        {/* URGENT BANNER */}
+        <div style={{background:"var(--urgent-bg)",border:"1.5px solid var(--urgent-border)",borderRadius:12,padding:"13px 16px",marginBottom:20,display:"flex",alignItems:"flex-start",gap:10}}>
+          <span style={{fontSize:17,lineHeight:1,marginTop:1}}>🚨</span>
+          <div>
+            <div style={{fontSize:13,fontWeight:700,color:"var(--urgent)",marginBottom:4}}>2 Urgent Actions Required</div>
+            <div style={{fontSize:12,color:"#922a20",lineHeight:1.55}}>
+              <div>· Contract amendment — sign-off due <b>today by 5 PM</b></div>
+              <div>· Security alert: unrecognized login on your account</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="sec-lbl">Daily Brief</div>
+        {BRIEF.map((item,i)=>(
+          <div key={i} className={`brief-card ${i<rev?"vis":""}`} style={{background:bgMap[item.priority],borderColor:bdMap[item.priority]}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:5}}>
+              <span style={{fontSize:17}}>{item.icon}</span>
+              <div style={{flex:1}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span style={{fontSize:11.5,fontWeight:500,color:"var(--text2)"}}>{item.label}</span>
+                  <span style={{fontSize:12.5,fontWeight:700,color:"var(--text)"}}>{item.value}</span>
+                </div>
+              </div>
+            </div>
+            <p style={{fontSize:11.5,color:"var(--text3)",paddingLeft:27,lineHeight:1.55}}>{item.detail}</p>
+          </div>
+        ))}
+
+        <div className="hr"/>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <div className="pulse" style={{width:7,height:7,borderRadius:"50%",background:"var(--later)",flexShrink:0}}/>
+          <span style={{fontSize:11.5,color:"var(--text3)"}}>All systems operational</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MailSec({items,p}){
+  if(!items.length)return null;
+  return(
+    <div>
+      <div className="mail-sec-hdr">
+        <Chip p={p}/>
+        <div className="mail-sec-line"/>
+        <span style={{fontSize:11,color:"var(--text3)",fontWeight:500}}>{items.length} message{items.length>1?"s":""}</span>
+      </div>
+      {items.map(m=>(
+        <div key={m.id} className={`mail-card ${p==="urgent"?"mail-card-u":p==="important"?"mail-card-i":""} ${m.unread&&p==="urgent"?"unread-u":m.unread?"unread-l":""}`}>
+          <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+            <Avt initials={m.avatar} color={m.col} size={36}/>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,marginBottom:3}}>
+                <span style={{fontSize:13,fontWeight:m.unread?600:500,color:"var(--text)"}}>{m.from}</span>
+                <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+                  <span style={{fontSize:11,color:"var(--text3)"}}>{m.time}</span>
+                  {m.unread&&<div style={{width:7,height:7,borderRadius:"50%",background:p==="urgent"?"var(--urgent)":"var(--accent)",flexShrink:0}}/>}
+                </div>
+              </div>
+              <p style={{fontSize:13,fontWeight:m.unread?500:400,color:"var(--text)",marginBottom:4,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.subject}</p>
+              <p style={{fontSize:12,color:"var(--text3)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",lineHeight:1.45}}>{m.preview}</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function InboxPanel(){
+  const uc=EMAILS.urgent.filter(m=>m.unread).length;
+  const total=Object.values(EMAILS).flat().filter(m=>m.unread).length;
+  return(
+    <div className="panel-in">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:22}}>
+        <div>
+          <h2 style={{fontFamily:"'Instrument Serif',serif",fontSize:26,fontWeight:400,marginBottom:4}}>Inbox</h2>
+          <p style={{fontSize:12.5,color:"var(--text3)"}}>{total} unread · triaged by priority</p>
+        </div>
+        {uc>0&&(
+          <div style={{background:"var(--urgent-bg)",border:"1px solid var(--urgent-border)",borderRadius:9,padding:"7px 12px",display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:12}}>🔴</span>
+            <span style={{fontSize:12,fontWeight:700,color:"var(--urgent)"}}>{uc} urgent</span>
+          </div>
+        )}
+      </div>
+      <MailSec items={EMAILS.urgent} p="urgent"/>
+      <MailSec items={EMAILS.important} p="important"/>
+      <MailSec items={EMAILS.later} p="later"/>
+    </div>
+  );
+}
+
+function SlackPanel(){
+  const total=SLACK.reduce((s,c)=>s+c.unread,0);
+  const urgentChs=SLACK.filter(c=>c.priority==="urgent"&&c.unread>0);
+  return(
+    <div className="panel-in">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:22}}>
+        <div>
+          <h2 style={{fontFamily:"'Instrument Serif',serif",fontSize:26,fontWeight:400,marginBottom:4}}>Slack</h2>
+          <p style={{fontSize:12.5,color:"var(--text3)"}}>{total} unread across {SLACK.filter(c=>c.unread>0).length} channels</p>
+        </div>
+        {urgentChs.length>0&&(
+          <div style={{background:"var(--urgent-bg)",border:"1px solid var(--urgent-border)",borderRadius:9,padding:"7px 12px",display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:12}}>🔴</span>
+            <span style={{fontSize:12,fontWeight:700,color:"var(--urgent)"}}>1 urgent</span>
+          </div>
+        )}
+      </div>
+      {SLACK.map(c=>(
+        <div key={c.id} className="slack-row">
+          <div style={{fontSize:20,width:36,textAlign:"center",lineHeight:1.6,flexShrink:0}}>{c.emoji}</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{display:"flex",justifyContent:"space-between",gap:8,marginBottom:3}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:13,fontWeight:600,color:"var(--text)"}}>{c.channel}</span>
+                {c.priority!=="later"&&<Chip p={c.priority}/>}
+              </div>
+              <span style={{fontSize:11,color:"var(--text3)",flexShrink:0}}>{c.time}</span>
+            </div>
+            <p style={{fontSize:12.5,color:"var(--text2)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.msg}</p>
+          </div>
+          {c.unread>0&&(
+            <div style={{background:c.priority==="urgent"?"var(--urgent)":"var(--accent)",color:"#fff",borderRadius:20,fontSize:10.5,fontWeight:700,padding:"2px 7px",flexShrink:0,marginLeft:8}}>{c.unread}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CalPanel(){
+  return(
+    <div className="panel-in">
+      <h2 style={{fontFamily:"'Instrument Serif',serif",fontSize:26,fontWeight:400,marginBottom:4}}>Today's Schedule</h2>
+      <p style={{fontSize:12.5,color:"var(--text3)",marginBottom:22}}>{CALENDAR.length} meetings · {getDate()}</p>
+      {CALENDAR.map(e=>(
+        <div key={e.id} className="cal-row">
+          <div style={{width:3,background:e.color,borderRadius:3,flexShrink:0}}/>
+          <div style={{flex:1}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+              <span style={{fontSize:14,fontWeight:600,color:"var(--text)"}}>{e.title}</span>
+              <span style={{fontSize:11,fontWeight:600,padding:"2px 9px",borderRadius:20,background:e.color+"15",color:e.color,letterSpacing:"0.3px"}}>{e.tag}</span>
+            </div>
+            <div style={{display:"flex",gap:16}}>
+              <span style={{fontSize:12.5,color:"var(--text2)"}}>🕐 {e.time}</span>
+              <span style={{fontSize:12.5,color:"var(--text3)"}}>⏱ {e.duration}</span>
+              <span style={{fontSize:12.5,color:"var(--text3)"}}>👤 {e.pax}</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TasksPanel(){
+  const [tasks,setTasks]=useState(INIT_TASKS);
+  const tog=id=>setTasks(ts=>ts.map(t=>t.id===id?{...t,done:!t.done}:t));
+  const dn=tasks.filter(t=>t.done).length;
+  const pct=Math.round(dn/tasks.length*100);
+  const groups=[{k:"urgent",lbl:"Urgent"},{k:"important",lbl:"Important"},{k:"later",lbl:"Later"}];
+  return(
+    <div className="panel-in">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
+        <div>
+          <h2 style={{fontFamily:"'Instrument Serif',serif",fontSize:26,fontWeight:400,marginBottom:4}}>Tasks</h2>
+          <p style={{fontSize:12.5,color:"var(--text3)"}}>{tasks.filter(t=>!t.done).length} open · {dn} completed today</p>
+        </div>
+      </div>
+      <div style={{background:"var(--surface)",border:"1.5px solid var(--border)",borderRadius:11,padding:"14px 16px",marginBottom:20}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+          <span style={{fontSize:12,color:"var(--text3)"}}>Daily progress</span>
+          <span style={{fontSize:13,fontWeight:700,color:pct===100?"var(--later)":"var(--accent)"}}>{pct}% complete</span>
+        </div>
+        <div className="prog-track">
+          <div style={{height:"100%",borderRadius:5,background:pct===100?"var(--later)":"linear-gradient(90deg,var(--accent),#b899e8)",width:`${pct}%`,transition:"width .5s ease"}}/>
+        </div>
+      </div>
+      {groups.map(g=>{
+        const items=tasks.filter(t=>t.priority===g.k);
+        if(!items.length)return null;
+        return(
+          <div key={g.k}>
+            <div className="mail-sec-hdr">
+              <Chip p={g.k}/>
+              <div className="mail-sec-line"/>
+              <span style={{fontSize:11,color:"var(--text3)"}}>{items.filter(t=>!t.done).length} open</span>
+            </div>
+            {items.map(t=>(
+              <div key={t.id} className="task-row" onClick={()=>tog(t.id)}>
+                <div className={`chk ${t.done?"dn":""}`}>{t.done&&<span style={{color:"#fff",fontWeight:700}}>✓</span>}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <p style={{fontSize:13.5,fontWeight:t.done?400:500,color:t.done?"var(--text3)":"var(--text)",textDecoration:t.done?"line-through":"none",marginBottom:3}}>{t.title}</p>
+                  <span style={{fontSize:11.5,color:t.due.includes("Today")&&!t.done?"var(--urgent)":"var(--text3)",fontWeight:t.due.includes("Today")&&!t.done?600:400}}>Due: {t.due}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function Dashboard({user,onLogout}){
+  const [active,setActive]=useState("inbox");
+  const [dd,setDd]=useState(false);
+  const ref=useRef(null);
+  useEffect(()=>{
+    const h=e=>{if(ref.current&&!ref.current.contains(e.target))setDd(false);};
+    document.addEventListener("mousedown",h);return()=>document.removeEventListener("mousedown",h);
+  },[]);
+
+  const urgentCount=EMAILS.urgent.filter(m=>m.unread).length;
+  const inboxTotal=Object.values(EMAILS).flat().filter(m=>m.unread).length;
+  const slackTotal=SLACK.reduce((s,c)=>s+c.unread,0);
+  const taskUrgent=INIT_TASKS.filter(t=>!t.done&&t.priority==="urgent").length;
+
+  const tabs=[
+    {k:"inbox",lbl:"Inbox",icon:"✉️",badge:inboxTotal,bdType:urgentCount>0?"bdg-red":"bdg-blue"},
+    {k:"slack",lbl:"Slack",icon:"⚡",badge:slackTotal,bdType:"bdg-blue"},
+    {k:"calendar",lbl:"Calendar",icon:"📅",badge:null},
+    {k:"tasks",lbl:"Tasks",icon:"✅",badge:taskUrgent||null,bdType:"bdg-red"},
+  ];
+
+  return(
+    <div className="dash">
+      <BriefPanel user={user}/>
+      <div className="right-col">
+        {/* TOPBAR */}
+        <div className="topbar">
+          <div style={{fontFamily:"'Instrument Serif',serif",fontSize:17,color:"var(--text2)",letterSpacing:"-0.2px",marginRight:6}}>Flowdesk</div>
+          <div className="search"><span style={{fontSize:13}}>🔍</span><span>Search anything…</span></div>
+          <div style={{flex:1}}/>
+          <Clock/>
+          <div style={{width:1,height:18,background:"var(--border)",margin:"0 6px"}}/>
+          <div style={{position:"relative"}} ref={ref}>
+            <button className="u-avatar" onClick={()=>setDd(d=>!d)}>{user.initials}</button>
+            {dd&&(
+              <div className="dropdown">
+                <div style={{padding:"10px 12px 10px",borderBottom:"1px solid var(--border)",marginBottom:4}}>
+                  <div style={{fontSize:13.5,fontWeight:600,color:"var(--text)",marginBottom:2}}>{user.name}</div>
+                  <div style={{fontSize:11.5,color:"var(--text3)"}}>{user.email}</div>
+                </div>
+                {["Profile & settings","Notification preferences","Integrations","Keyboard shortcuts"].map(item=>(
+                  <button key={item} className="dd-item">{item}</button>
+                ))}
+                <div className="dd-div"/>
+                <button className="dd-item danger" onClick={onLogout}>Sign out</button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* TABS */}
+        <div className="tab-row">
+          {tabs.map(t=>(
+            <button key={t.k} className={`tab-btn ${active===t.k?"on":""}`} onClick={()=>setActive(t.k)}>
+              <span>{t.icon}</span>{t.lbl}
+              {t.badge>0&&<span className={`bdg ${t.bdType||"bdg-gray"}`}>{t.badge}</span>}
+            </button>
+          ))}
+        </div>
+
+        {/* CONTENT */}
+        <div className="right-scroll">
+          {active==="inbox"&&<InboxPanel/>}
+          {active==="slack"&&<SlackPanel/>}
+          {active==="calendar"&&<CalPanel/>}
+          {active==="tasks"&&<TasksPanel/>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App(){
+  const [user,setUser]=useState(null);
+  return user?<Dashboard user={user} onLogout={()=>setUser(null)}/>:<LoginPage onLogin={setUser}/>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
