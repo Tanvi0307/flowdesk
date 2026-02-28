@@ -1,116 +1,58 @@
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
 
-export default function DailyBrief() {
+function DailyBrief({ allClassifiedData }) {
 
-  const today = new Date().toDateString();
+  // ✅ YOU MUST DECLARE summary STATE
+  const [summary, setSummary] = useState(null);
 
-  const [brief, setBrief] = useState({
-    urgent: [],
-    important: [],
-    later: []
-  });
+  const runBrief = async () => {
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+    const response = await fetch("http://localhost:8080/api/ai/daily-brief", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: allClassifiedData })
+    });
 
-  const fetchBrief = () => {
-    setLoading(true);
-    setError(false);
-
-    fetch("http://localhost:8080/api/ai/daily-brief")
-      .then(res => res.json())
-      .then(data => {
-        setBrief(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Daily brief error:", err);
-        setError(true);
-        setLoading(false);
-      });
+    const result = await response.json();
+    setSummary(result);
   };
 
-  useEffect(() => {
-    fetchBrief();
-  }, []);
-
-  const Section = ({ title, color, items }) => (
-    <div className="mb-6">
-      <h3 className={`font-semibold mb-3 ${color}`}>
-        {title}
-      </h3>
-
-      {items.length === 0 && (
-        <p className="text-gray-500 text-sm">No items</p>
-      )}
-
-      {items.map((item, index) => (
-        <div
-          key={index}
-          className="p-2 bg-[#0f0f1a] rounded mb-2 text-sm"
-        >
-          {item}
-        </div>
-      ))}
-    </div>
-  );
-
   return (
-    <div className="w-80 bg-[#1a1a2e] p-6 flex flex-col text-white">
+    <div>
+      <h2>Daily Brief</h2>
 
-      <h2 className="text-xl font-bold mb-1">
-        Daily Focus
-      </h2>
-
-      <button
-        onClick={fetchBrief}
-        className="mb-4 bg-purple-600 px-3 py-1 rounded text-sm"
-      >
-        Refresh
+      <button onClick={runBrief}>
+        Generate Daily Brief
       </button>
 
-      <p className="text-gray-400 text-sm mb-6">
-        {today}
-      </p>
+      {summary && (
+        <div style={{ marginTop: "20px" }}>
 
-      {loading && (
-        <p className="text-gray-400 text-sm">
-          Generating AI brief...
-        </p>
+          <div>
+            <h3 style={{ color: "red" }}>🔴 Urgent</h3>
+            {summary.urgent.map((item, index) => (
+              <div key={"u" + index}>• {item}</div>
+            ))}
+          </div>
+
+          <div>
+            <h3 style={{ color: "orange" }}>🟠 Important</h3>
+            {summary.important.map((item, index) => (
+              <div key={"i" + index}>• {item}</div>
+            ))}
+          </div>
+
+          <div>
+            <h3 style={{ color: "gray" }}>⚪ Others</h3>
+            {summary.other.map((item, index) => (
+              <div key={"o" + index}>• {item}</div>
+            ))}
+          </div>
+
+        </div>
       )}
-
-      {error && (
-        <p className="text-red-400 text-sm">
-          Failed to load AI ranking
-        </p>
-      )}
-
-      {!loading && !error && (
-        <>
-          <Section
-            title="🔴 Urgent"
-            color="text-red-400"
-            items={brief.urgent}
-          />
-
-          <Section
-            title="🟡 Important"
-            color="text-yellow-400"
-            items={brief.important}
-          />
-
-          <Section
-            title="🟢 Later"
-            color="text-green-400"
-            items={brief.later}
-          />
-        </>
-      )}
-
-      <div className="mt-auto pt-4 border-t border-gray-700 text-sm text-gray-400">
-        LLM-powered intelligent ranking
-      </div>
-
     </div>
   );
 }
+
+export default DailyBrief;

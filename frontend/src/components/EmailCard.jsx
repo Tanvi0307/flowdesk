@@ -42,13 +42,9 @@ function EmailCard({ email, onGenerateReply }) {
         </span>
       </p>
 
-      <p>
-        <strong>Confidence:</strong> {email.confidence}%
-      </p>
+      
 
-      <p>
-        <strong>Reason:</strong> {email.reason}
-      </p>
+      
 
       {/* Generate Reply Button */}
       <button
