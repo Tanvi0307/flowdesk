@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import slackMessages from "../data/slackData";
 
-function Slack() {
+function Slack({ setAllClassifiedData }) {
 
   const [messages, setMessages] = useState(slackMessages);
   const [loading, setLoading] = useState(false);
@@ -37,6 +37,15 @@ function Slack() {
       });
 
       setMessages(updated);
+
+      // 🔥 PUSH TO GLOBAL STATE (FOR DAILY BRIEF)
+      setAllClassifiedData(prev => [
+        ...prev.filter(item => item.source !== "slack"),
+        ...updated.map(item => ({
+          ...item,
+          source: "slack"
+        }))
+      ]);
 
     } catch (err) {
       console.error("Slack AI Error:", err);
@@ -103,8 +112,6 @@ function Slack() {
               {msg.aiTag.toUpperCase()}
             </div>
           )}
-
-          
 
         </div>
       ))}

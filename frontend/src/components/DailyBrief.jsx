@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 function DailyBrief({ allClassifiedData }) {
 
-  // ✅ YOU MUST DECLARE summary STATE
+  // ✅ DEFINE summary STATE
   const [summary, setSummary] = useState(null);
 
   const runBrief = async () => {
@@ -14,6 +14,8 @@ function DailyBrief({ allClassifiedData }) {
     });
 
     const result = await response.json();
+    console.log("Daily Brief:", result);
+
     setSummary(result);
   };
 
@@ -28,25 +30,40 @@ function DailyBrief({ allClassifiedData }) {
       {summary && (
         <div style={{ marginTop: "20px" }}>
 
+          {/* 🔴 URGENT */}
           <div>
             <h3 style={{ color: "red" }}>🔴 Urgent</h3>
-            {summary.urgent.map((item, index) => (
-              <div key={"u" + index}>• {item}</div>
-            ))}
+            {summary.urgent && summary.urgent.length > 0 ? (
+              summary.urgent.map((item, index) => (
+                <div key={"u" + index}>• {item}</div>
+              ))
+            ) : (
+              <div>No urgent items</div>
+            )}
           </div>
 
+          {/* 🟠 IMPORTANT */}
           <div>
             <h3 style={{ color: "orange" }}>🟠 Important</h3>
-            {summary.important.map((item, index) => (
-              <div key={"i" + index}>• {item}</div>
-            ))}
+            {summary.important && summary.important.length > 0 ? (
+              summary.important.map((item, index) => (
+                <div key={"i" + index}>• {item}</div>
+              ))
+            ) : (
+              <div>No important items</div>
+            )}
           </div>
 
+          {/* ⚪ LATER */}
           <div>
-            <h3 style={{ color: "gray" }}>⚪ Others</h3>
-            {summary.other.map((item, index) => (
-              <div key={"o" + index}>• {item}</div>
-            ))}
+            <h3 style={{ color: "gray" }}>⚪ Later</h3>
+            {summary.later && summary.later.length > 0 ? (
+              summary.later.map((item, index) => (
+                <div key={"l" + index}>• {item}</div>
+              ))
+            ) : (
+              <div>No later items</div>
+            )}
           </div>
 
         </div>

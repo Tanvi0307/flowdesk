@@ -2,7 +2,8 @@ import { useState } from "react";
 import EmailCard from "./EmailCard";
 import inboxData from "../data/inboxData";
 
-function Inbox() {
+function Inbox({ setAllClassifiedData }) {
+
   const [emails, setEmails] = useState(inboxData);
   const [loading, setLoading] = useState(false);
 
@@ -10,6 +11,7 @@ function Inbox() {
   // CLASSIFY EMAILS
   // =============================
   const classifyEmails = async () => {
+
     setLoading(true);
 
     try {
@@ -25,13 +27,24 @@ function Inbox() {
       const data = await response.json();
 
       if (Array.isArray(data)) {
-        setEmails((prev) =>
-          prev.map((email) => {
-            const updated = data.find((d) => d.id === email.id);
-            return updated ? { ...email, ...updated } : email;
-          })
-        );
+
+        const updated = emails.map((email) => {
+          const match = data.find((d) => d.id === email.id);
+          return match ? { ...email, ...match } : email;
+        });
+
+        setEmails(updated);
+
+        // 🔥 PUSH TO GLOBAL STATE
+        setAllClassifiedData(prev => [
+          ...prev.filter(item => item.source !== "inbox"),
+          ...updated.map(item => ({
+            ...item,
+            source: "inbox"
+          }))
+        ]);
       }
+
     } catch (error) {
       console.error("Classification error:", error);
     }
@@ -40,9 +53,10 @@ function Inbox() {
   };
 
   // =============================
-  // GENERATE REPLY (FIXED)
+  // GENERATE REPLY
   // =============================
   const generateReply = async (id) => {
+
     try {
       const email = emails.find((e) => e.id === id);
 
@@ -62,6 +76,7 @@ function Inbox() {
           e.id === id ? { ...e, reply: data.reply } : e
         )
       );
+
     } catch (error) {
       console.error("Reply error:", error);
     }
@@ -80,7 +95,7 @@ function Inbox() {
           <EmailCard
             key={email.id}
             email={email}
-            onGenerateReply={generateReply}  
+            onGenerateReply={generateReply}
           />
         ))}
       </div>

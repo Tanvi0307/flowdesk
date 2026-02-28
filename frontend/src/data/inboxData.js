@@ -18,7 +18,7 @@ const inboxData = [
   {
     id: "3",
     title: "Documentation",
-    content: "Update documentation within 2 hours.",
+    content: "Update documentation within 2 days before client demo.",
     priority: "",
     confidence: "",
     reason: "",
