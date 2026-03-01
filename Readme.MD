@@ -8,9 +8,7 @@
 
 - **Smart Inbox** — Emails are automatically classified as `urgent`, `important`, or `later` using a hybrid rule + LLM engine.
 - **Slack Integration** — Messages are tagged as `urgent`, `action`, `meeting-change`, `important`, or `informational`.
-- **Drive** — Documents are prioritized by content analysis and deadline detection.
-- **Calendar** — Displays upcoming meetings and events.
-- **Tasks** — A prioritized to-do list with progress tracking.
+- **Drive** — Documents are prioritized by content analysis and deadline detection
 - **Daily Brief** — A summarized digest of all classified items across every module.
 - **AI Reply Generation** — One-click professional reply drafting for emails and Slack messages, powered by a local LLM.
 
