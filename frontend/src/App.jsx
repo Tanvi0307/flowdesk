@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import Inbox from "./components/Inbox";
 import Drive from "./components/Drive";
 import Slack from "./components/Slack";
-import DailyBrief from "./components/DailyBrief";
 import CalendarPanel from "./components/CalendarPanel";
 import BriefSidebar from "./components/BriefSidebar";
 import LoginPage from "./components/LoginPage";
@@ -40,18 +39,16 @@ function Dashboard({ user, onLogout }) {
   }, []);
 
   const tabs = [
-    { k: "inbox",   lbl: "Inbox",    icon: "✉️",  badge: 3,  bdType: "bdg-red" },
-    { k: "slack",   lbl: "Slack",    icon: "⚡",  badge: 18, bdType: "bdg-blue" },
-    { k: "calendar",lbl: "Calendar", icon: "📅",  badge: null },
-    { k: "tasks",   lbl: "Tasks",    icon: "✅",  badge: 2,  bdType: "bdg-red" },
-    { k: "drive",   lbl: "Drive",    icon: "📁",  badge: null },
-    { k: "daily-brief", lbl: "Daily Brief", icon: "📋", badge: null },
+    { k: "inbox",    lbl: "Inbox",    icon: "✉️", badge: 3,  bdType: "bdg-red"  },
+    { k: "slack",    lbl: "Slack",    icon: "⚡", badge: 18, bdType: "bdg-blue" },
+    { k: "calendar", lbl: "Calendar", icon: "📅", badge: null },
+    { k: "drive",    lbl: "Drive",    icon: "📁", badge: null },
   ];
 
   return (
     <div className="dash">
-      {/* LEFT BRIEF PANEL */}
-      <BriefSidebar user={user} />
+      {/* LEFT BRIEF PANEL — now receives allClassifiedData */}
+      <BriefSidebar user={user} allClassifiedData={allClassifiedData} />
 
       {/* RIGHT COLUMN */}
       <div className="right-col">
@@ -61,8 +58,8 @@ function Dashboard({ user, onLogout }) {
             Flowdesk
           </div>
           <div style={{ fontSize: 13, color: "var(--text3)", marginLeft: 6 }}>
-  {getGreeting()}, {user.name.split(" ")[0]}
-</div>
+            {getGreeting()}, {user.name.split(" ")[0]}
+          </div>
           <div className="search">
             <span style={{ fontSize: 13 }}>🔍</span>
             <span>Search anything…</span>
@@ -109,95 +106,12 @@ function Dashboard({ user, onLogout }) {
 
         {/* CONTENT */}
         <div className="right-scroll">
-          {active === "inbox"       && <Inbox setAllClassifiedData={setAllClassifiedData} />}
-          {active === "slack"       && <Slack setAllClassifiedData={setAllClassifiedData} />}
-          {active === "calendar"    && <CalendarPanel />}
-          {active === "tasks"       && <TasksPanel />}
-          {active === "drive"       && <Drive setAllClassifiedData={setAllClassifiedData} />}
-          {active === "daily-brief" && <DailyBrief allClassifiedData={allClassifiedData} />}
+          {active === "inbox"    && <Inbox    setAllClassifiedData={setAllClassifiedData} />}
+          {active === "slack"    && <Slack    setAllClassifiedData={setAllClassifiedData} />}
+          {active === "calendar" && <CalendarPanel />}
+          {active === "drive"    && <Drive    setAllClassifiedData={setAllClassifiedData} />}
         </div>
       </div>
-    </div>
-  );
-}
-
-// ── TASKS PANEL (inline, simple) ─────────────────────────────────────────────
-const INIT_TASKS = [
-  { id: 1, title: "Review & sign off on contract amendment (David Yuen)", done: false, priority: "urgent",    due: "Today, 5 PM" },
-  { id: 2, title: "Resolve security alert — review active sessions",       done: false, priority: "urgent",    due: "Today" },
-  { id: 3, title: "Approve Q3 board report — slides 12–16",                done: false, priority: "important", due: "Today" },
-  { id: 4, title: "Review PR #247 — authentication refactor",              done: false, priority: "important", due: "Today" },
-  { id: 5, title: "Update team OKRs for Q4 in Notion",                    done: true,  priority: "important", due: "Completed" },
-  { id: 6, title: "Sprint 12 retrospective document",                      done: false, priority: "later",     due: "This week" },
-  { id: 7, title: "Schedule Q4 offsite planning session",                  done: false, priority: "later",     due: "Next week" },
-];
-
-function Chip({ p }) {
-  const map = {
-    urgent:    ["chip chip-u", "Urgent"],
-    important: ["chip chip-i", "Important"],
-    later:     ["chip chip-l", "Later"],
-  };
-  const [cls, lbl] = map[p] || ["chip chip-l", "Later"];
-  return (
-    <span className={cls}>
-      <span style={{ width: 5, height: 5, borderRadius: "50%", background: "currentColor", display: "inline-block" }} />
-      {lbl}
-    </span>
-  );
-}
-
-function TasksPanel() {
-  const [tasks, setTasks] = useState(INIT_TASKS);
-  const tog = (id) => setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
-  const dn = tasks.filter((t) => t.done).length;
-  const pct = Math.round((dn / tasks.length) * 100);
-  const groups = [
-    { k: "urgent", lbl: "Urgent" },
-    { k: "important", lbl: "Important" },
-    { k: "later", lbl: "Later" },
-  ];
-  return (
-    <div className="panel-in">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-        <div>
-          <h2 style={{ fontFamily: "'Instrument Serif',serif", fontSize: 26, fontWeight: 400, marginBottom: 4 }}>Tasks</h2>
-          <p style={{ fontSize: 12.5, color: "var(--text3)" }}>{tasks.filter((t) => !t.done).length} open · {dn} completed today</p>
-        </div>
-      </div>
-      <div style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: 11, padding: "14px 16px", marginBottom: 20 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-          <span style={{ fontSize: 12, color: "var(--text3)" }}>Daily progress</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: pct === 100 ? "var(--later)" : "var(--accent)" }}>{pct}% complete</span>
-        </div>
-        <div className="prog-track">
-          <div style={{ height: "100%", borderRadius: 5, background: pct === 100 ? "var(--later)" : "linear-gradient(90deg,var(--accent),#b899e8)", width: `${pct}%`, transition: "width .5s ease" }} />
-        </div>
-      </div>
-      {groups.map((g) => {
-        const items = tasks.filter((t) => t.priority === g.k);
-        if (!items.length) return null;
-        return (
-          <div key={g.k}>
-            <div className="mail-sec-hdr">
-              <Chip p={g.k} />
-              <div className="mail-sec-line" />
-              <span style={{ fontSize: 11, color: "var(--text3)" }}>{items.filter((t) => !t.done).length} open</span>
-            </div>
-            {items.map((t) => (
-              <div key={t.id} className="task-row" onClick={() => tog(t.id)}>
-                <div className={`chk ${t.done ? "dn" : ""}`}>
-                  {t.done && <span style={{ color: "#fff", fontWeight: 700 }}>✓</span>}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 13.5, fontWeight: t.done ? 400 : 500, color: t.done ? "var(--text3)" : "var(--text)", textDecoration: t.done ? "line-through" : "none", marginBottom: 3 }}>{t.title}</p>
-                  <span style={{ fontSize: 11.5, color: t.due.includes("Today") && !t.done ? "var(--urgent)" : "var(--text3)", fontWeight: t.due.includes("Today") && !t.done ? 600 : 400 }}>Due: {t.due}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        );
-      })}
     </div>
   );
 }
