@@ -326,14 +326,32 @@ export default function LoginPage({ onLogin }) {
               value={pw} onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => e.key === "Enter" && go()} />
 
             <button className="login-btn" onClick={go} disabled={loading}>
-              {loading ? "Signing in…" : "Sign in"}
-            </button>
+  {loading ? "Signing in…" : "Sign in"}
+</button>
 
-            <p className="lp-footer-note">By signing in you agree to our Terms & Privacy Policy.</p>
-          </div>
-        </div>
+<p className="lp-footer-note">By signing in you agree to our Terms & Privacy Policy.</p>
 
-      </div>
+{/* ADD THIS BELOW 👇 */}
+<div style={{
+  marginTop: 16,
+  padding: "12px 16px",
+  background: "#f0ecff",
+  border: "1px dashed #c4b5fd",
+  borderRadius: 10,
+  fontSize: 12.5,
+  color: "#555",
+  lineHeight: 1.7,
+  textAlign: "left"
+}}>
+  <strong style={{ color: "#7c4dff", display: "block", marginBottom: 4 }}>Demo Credentials</strong>
+  📧 alex@flowdesk.io &nbsp;/&nbsp; 🔑 demo123<br />
+  📧 sarah@flowdesk.io &nbsp;/&nbsp; 🔑 demo123
+</div>
+{/* END 👆 */}
+
+          </div>   {/* closes lp-form-box */}
+        </div>     {/* closes lp-right */}
+      </div>       {/* closes lp-wrap */}
     </>
   );
 }
