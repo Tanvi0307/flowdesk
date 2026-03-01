@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import Inbox from "./components/Inbox";
 import Drive from "./components/Drive";
 import Slack from "./components/Slack";
-import CalendarPanel from "./components/CalendarPanel";
 import BriefSidebar from "./components/BriefSidebar";
 import LoginPage from "./components/LoginPage";
 
@@ -41,7 +40,6 @@ function Dashboard({ user, onLogout }) {
   const tabs = [
     { k: "inbox",    lbl: "Inbox",    icon: "✉️", badge: 3,  bdType: "bdg-red"  },
     { k: "slack",    lbl: "Slack",    icon: "⚡", badge: 18, bdType: "bdg-blue" },
-    { k: "calendar", lbl: "Calendar", icon: "📅", badge: null },
     { k: "drive",    lbl: "Drive",    icon: "📁", badge: null },
   ];
 
@@ -108,7 +106,6 @@ function Dashboard({ user, onLogout }) {
         <div className="right-scroll">
           {active === "inbox"    && <Inbox    setAllClassifiedData={setAllClassifiedData} />}
           {active === "slack"    && <Slack    setAllClassifiedData={setAllClassifiedData} />}
-          {active === "calendar" && <CalendarPanel />}
           {active === "drive"    && <Drive    setAllClassifiedData={setAllClassifiedData} />}
         </div>
       </div>

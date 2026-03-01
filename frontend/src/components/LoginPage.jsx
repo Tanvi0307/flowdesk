@@ -290,7 +290,7 @@ export default function LoginPage({ onLogin }) {
           </div>
 
           <div className="lp-headline">
-            <h1>Your work,<br /><em>finally</em><br />in focus.</h1>
+            <h1>Your day,<br /><em>intelligently</em><br />organized.</h1>
           </div>
 
           <div className="lp-testimonial">
